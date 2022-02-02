@@ -53,7 +53,7 @@ public class SL {
             super(name);
         }
 
-        public void init(Environment environment) throws UnknownCommandException, IOException {
+        public void init(Environment environment) throws UnknownCommandException, IOException, SceneNotFoundException {
             for (Action action :
                     actions) {
                 if (action.name.equals("init"))
@@ -86,7 +86,7 @@ public class SL {
             super(name);
         }
 
-        public void exec(Environment environment) throws UnknownCommandException, IOException {
+        public void exec(Environment environment) throws UnknownCommandException, IOException, SceneNotFoundException {
             for (Command command :
                     commands) {
                 command.exec(environment);
@@ -118,7 +118,7 @@ public class SL {
             super(name);
         }
 
-        public void exec(Environment environment) throws UnknownCommandException, IOException {
+        public void exec(Environment environment) throws UnknownCommandException, IOException, SceneNotFoundException {
             Engine.execCommand(this, environment);
         }
 
