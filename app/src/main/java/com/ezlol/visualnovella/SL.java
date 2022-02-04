@@ -1,19 +1,38 @@
 package com.ezlol.visualnovella;
 
+import androidx.annotation.NonNull;
+
 import com.google.gson.Gson;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class SL {
 
     public static class Quest {
         protected Scene[] scenes;
-        protected String path;
+        public Dialog[] dialogs;
         protected Scene currentScene;
 
         public Quest(Scene[] scenes) {
             this.scenes = scenes;
+        }
+
+        public Quest(Scene[] scenes, Dialog[] dialogs) {
+            this.scenes = scenes;
+            this.dialogs = dialogs;
+        }
+
+        public Dialog findDialog(int id) {
+            Dialog d = null;
+            for (Dialog dialog :
+                    dialogs) {
+                if(dialog.id == id)
+                    d = dialog;
+            }
+            return d;
         }
 
         public Scene getCurrentScene() {
@@ -47,7 +66,6 @@ public class SL {
 
     static class Scene extends Token {
         protected Action[] actions;
-        protected Scene[] outcomes;
 
         public Scene(String name) {
             super(name);
@@ -64,6 +82,31 @@ public class SL {
         public Scene(String name, Action[] actions) {
             super(name);
             this.actions = actions;
+        }
+
+        public Action findAction(String name) {
+            Action a = null;
+            for (Action action :
+                    actions) {
+                if (action.name.equals(name)) {
+                    a = action;
+                }
+            }
+            return a;
+        }
+
+        public String[] getPossibleOutcomes() {
+            List<String> outcomes = new ArrayList<>();
+            for (Action action :
+                    actions) {
+                for (Command command :
+                        action.commands) {
+                    if(command.name.equals("goto")) {
+                        outcomes.add(command.params[0]);
+                    }
+                }
+            }
+            return outcomes.toArray(new String[]{});
         }
 
         public Action[] getActions() {

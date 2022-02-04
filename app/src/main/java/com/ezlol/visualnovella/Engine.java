@@ -1,13 +1,41 @@
 package com.ezlol.visualnovella;
 
+import android.util.Log;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
-public class Engine {
+public class Engine implements Dialog.OnDialogEndListener {
+    @Override
+    public void onDialogEnd(Dialog dialog) {
+        Log.d("My", "Dialog end " + dialogQueue.size());
+
+        if(dialog != null) {
+            if (dialog.onDialogEndListenerNonStatic != null)
+                dialog.onDialogEndListenerNonStatic.onDialogEnd(dialog);
+        }
+
+        if(onDialogEndListener != null)
+            onDialogEndListener.onDialogEnd(dialog);
+
+        if(onPhraseChangeListener != null && currentDialog != null)
+            onPhraseChangeListener.onPhraseChange(currentDialog.getCurrentPhrase());
+
+        currentDialog = dialogQueue.poll();
+
+        if(currentDialog == null) return;
+
+        Log.d("My", "CurrentDialog:" + currentDialog.phrases.length);
+    }
+
     static class Resource {
         enum Type {
             IMAGE_TYPE,
@@ -38,10 +66,19 @@ public class Engine {
     }
 
     protected static SL.Quest quest;
-    public static Map<String, Resource> images = new HashMap<>();
-    public static Map<String, Resource> audios = new HashMap<>();
+    public static Map<String, Resource> resources = new HashMap<>();
+    public static List<String> flags = new ArrayList<>();
+
+    public static Queue<Dialog> dialogQueue = new LinkedList<>();
+    public static Dialog currentDialog = null;
 
     private static OnSceneChangeListener onSceneChangeListener = null;
+    private static OnPhraseChangeListener onPhraseChangeListener = null;
+    private static Dialog.OnDialogEndListener onDialogEndListener = null;
+
+    {
+        Dialog.onDialogEndListener = this;
+    }
 
     public Engine() {
     }
@@ -59,7 +96,7 @@ public class Engine {
         switch(command.name) {
             case "load_image": {
                 System.out.println("[INFO] Loading image from " + environment.PATH + command.params[1] + "...");
-                images.put(command.params[0], new Resource(environment.PATH + command.params[1],
+                resources.put(command.params[0], new Resource(environment.PATH + command.params[1],
                         readFile(environment.PATH + command.params[1]),
                         Resource.Type.IMAGE_TYPE));
                 break;
@@ -67,7 +104,7 @@ public class Engine {
 
             case "load_audio": {
                 System.out.println("[INFO] Loading audio from " + environment.PATH + command.params[1] + "...");
-                audios.put(command.params[0], new Resource(environment.PATH + command.params[1],
+                resources.put(command.params[0], new Resource(environment.PATH + command.params[1],
                         readFile(environment.PATH + command.params[1]),
                         Resource.Type.AUDIO_TYPE));
                 break;
@@ -97,6 +134,40 @@ public class Engine {
                 break;
             }
 
+            case "add_dialog": {
+                Log.e("My", command.name + " " + Arrays.toString(command.params));
+                Dialog dialog = quest.findDialog(Integer.parseInt(command.params[0]));
+
+                dialogQueue.add(dialog);
+
+                if(command.params.length > 1) {
+                    SL.Action action = environment.scene.findAction(command.params[1]);
+                    dialog.onDialogEndListenerNonStatic = dialog1 -> {
+                        try {
+                            action.exec(environment);
+                        } catch (UnknownCommandException | IOException | SceneNotFoundException e) {
+                            e.printStackTrace();
+                        }
+                    };
+                }
+                break;
+            }
+
+            case "set_flag":
+                if(!flags.contains(command.params[0]))
+                    flags.add(command.params[0]);
+                break;
+
+            case "remove_flag":
+                flags.remove(command.params[0]);
+                break;
+
+            case "check_flag":
+                if(flags.contains(command.params[0])) {
+                    environment.scene.findAction(command.params[1]).exec(environment);
+                }
+                break;
+
             default:
                 throw new UnknownCommandException();
         }
@@ -105,8 +176,33 @@ public class Engine {
     public void init() throws UnknownCommandException, IOException, SceneNotFoundException {
         for (SL.Scene scene :
                 quest.scenes) {
-            scene.init(new Environment(""));
+            scene.init(new Environment("", scene));
         }
+        this.onDialogEnd(null);
+
+        if(onPhraseChangeListener != null)
+            onPhraseChangeListener.onPhraseChange(currentDialog.getCurrentPhrase());
+    }
+
+    public static void setOnDialogEndListener(Dialog.OnDialogEndListener onDialogEndListener) {
+        Engine.onDialogEndListener = onDialogEndListener;
+    }
+
+    public boolean gameDialogClick() {
+        if(currentDialog == null) return false;
+
+        if(!currentDialog.next()) {
+            //currentDialog = null; // надо ли?
+            if(dialogQueue.size() > 0) {
+                this.onDialogEnd(currentDialog);
+                return true;
+            }
+            return false;
+        }
+
+        if(onPhraseChangeListener != null)
+            onPhraseChangeListener.onPhraseChange(currentDialog.getCurrentPhrase());
+        return true;
     }
 
     private static void setCurrentScene(SL.Scene scene) {
@@ -126,5 +222,13 @@ public class Engine {
 
     public void setOnSceneChangeListener(OnSceneChangeListener onSceneChangeListener) {
         Engine.onSceneChangeListener = onSceneChangeListener;
+    }
+
+    public OnPhraseChangeListener getOnPhraseChangeListener() {
+        return onPhraseChangeListener;
+    }
+
+    public void setOnPhraseChangeListener(OnPhraseChangeListener onDialogChangeListener) {
+        Engine.onPhraseChangeListener = onDialogChangeListener;
     }
 }
