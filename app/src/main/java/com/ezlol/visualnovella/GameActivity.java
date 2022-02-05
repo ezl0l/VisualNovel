@@ -14,7 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import java.io.IOException;
 
 public class GameActivity extends AppCompatActivity implements View.OnClickListener, OnSceneChangeListener, OnPhraseChangeListener,
-        Dialog.OnDialogEndListener {
+        Dialog.OnDialogEndListener, Engine.OnChoiceChangeListener {
     LinearLayout dialogLayout;
     RelativeLayout blackoutLayout;
     TextView dialogAuthor, dialogContent, blackoutAgree, blackoutDecline;
@@ -40,6 +40,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
 
         dialogLayout.setOnClickListener(this);
 
+        Engine.setOnChoiceChangeListener(this);
         Engine.setOnDialogEndListener(this);
 
         engine.setOnSceneChangeListener(this);
@@ -52,29 +53,41 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    public void setChoiceScene() {
+    public void setChoiceScene(CharSequence agreeTitle, CharSequence declineTitle) {
+        dialogLayout.setVisibility(View.INVISIBLE);
 
+        blackoutAgree.setText(agreeTitle);
+        blackoutDecline.setText(declineTitle);
+
+        blackoutLayout.setVisibility(View.VISIBLE);
     }
 
     @Override
     public void onClick(View view) {
+        Log.d("My", "CLICK!");
         switch(view.getId()) {
             case R.id.game_dialog_layout:
-                dialogLayout.setVisibility(View.INVISIBLE);
-                blackoutLayout.setVisibility(View.VISIBLE);
-                //Log.d("My", engine.gameDialogClick() + "");
+                engine.gameDialogClick();
                 break;
 
             case R.id.blackout_agree:
-                dialogLayout.setVisibility(View.VISIBLE);
+                Log.d("My", "agree");
                 blackoutLayout.setVisibility(View.INVISIBLE);
-                //SOMETHING!
+                try {
+                    engine.agreeClick();
+                } catch (UnknownCommandException | SceneNotFoundException | IOException e) {
+                    e.printStackTrace();
+                }
                 break;
 
             case R.id.blackout_decline:
-                dialogLayout.setVisibility(View.VISIBLE);
+                Log.d("My", "decline");
                 blackoutLayout.setVisibility(View.INVISIBLE);
-                //SOMETHING!
+                try {
+                    engine.declineClick();
+                } catch (UnknownCommandException | SceneNotFoundException | IOException e) {
+                    e.printStackTrace();
+                }
                 break;
         }
     }
@@ -88,7 +101,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     public void onPhraseChange(Dialog.Phrase phrase) {
         if(phrase == null) return;
         dialogLayout.setVisibility(View.VISIBLE);
-        Toast.makeText(this, "Dialog smenils'a!", Toast.LENGTH_SHORT).show();
+        Log.d("My", "Phrase changed");
 
         dialogAuthor.setText(phrase.author);
         dialogContent.setText(phrase.content);
@@ -96,6 +109,13 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onDialogEnd(Dialog dialog) {
+        Log.d(this.getClass().getSimpleName(), "Dialog end");
         dialogLayout.setVisibility(View.INVISIBLE);
+    }
+
+    @Override
+    public void onChoiceChange(Dialog.Choice choice) {
+        dialogLayout.setVisibility(View.INVISIBLE);
+        setChoiceScene(choice.agreeTitle, choice.declineTitle);
     }
 }

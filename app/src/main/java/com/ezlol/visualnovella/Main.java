@@ -26,7 +26,23 @@ public class Main {
                 "\t\t\t\t\t\"commands\": [\n" +
                 "\t\t\t\t\t\t{\n" +
                 "\t\t\t\t\t\t\t\"name\": \"add_dialog\",\n" +
-                "\t\t\t\t\t\t\t\"params\": [1]\n" +
+                "\t\t\t\t\t\t\t\"params\": [1, \"choice\"]\n" +
+                "\t\t\t\t\t\t}\n" +
+                "\t\t\t\t\t]\n" +
+                "\t\t\t\t}, {\n" +
+                "\t\t\t\t\t\"name\": \"choice\",\n" +
+                "\t\t\t\t\t\"commands\": [\n" +
+                "\t\t\t\t\t\t{\n" +
+                "\t\t\t\t\t\t\t\"name\": \"choice\",\n" +
+                "\t\t\t\t\t\t\t\"params\": [\"agree title\", \"decline title\", \"agree\", \"decline\"]\n" +
+                "\t\t\t\t\t\t}\n" +
+                "\t\t\t\t\t]\n" +
+                "\t\t\t\t}, {\n" +
+                "\t\t\t\t\t\"name\": \"agree\",\n" +
+                "\t\t\t\t\t\"commands\": [\n" +
+                "\t\t\t\t\t\t{\n" +
+                "\t\t\t\t\t\t\t\"name\": \"add_dialog\",\n" +
+                "\t\t\t\t\t\t\t\"params\": [0]\n" +
                 "\t\t\t\t\t\t}\n" +
                 "\t\t\t\t\t]\n" +
                 "\t\t\t\t}\n" +
@@ -67,67 +83,7 @@ public class Main {
                 "\t\t\t\t{\n" +
                 "\t\t\t\t\t\"author\": \"Name2\",\n" +
                 "\t\t\t\t\t\"content\": \"ZBS, and u?\"\n" +
-                "\t\t\t\t},{\n" +
-                "\t\t\t\t\t\"author\": \"Name1\",\n" +
-                "\t\t\t\t\t\"content\": \"Shalom!!!!\"\n" +
-                "\t\t\t\t},\n" +
-                "\t\t\t\t{\n" +
-                "\t\t\t\t\t\"author\": \"Name2\",\n" +
-                "\t\t\t\t\t\"content\": \"Shalom too!!!\"\n" +
-                "\t\t\t\t},\n" +
-                "\t\t\t\t{\n" +
-                "\t\t\t\t\t\"author\": \"Name1\",\n" +
-                "\t\t\t\t\t\"content\": \"HAW?\"\n" +
-                "\t\t\t\t},\n" +
-                "\t\t\t\t{\n" +
-                "\t\t\t\t\t\"author\": \"Name2\",\n" +
-                "\t\t\t\t\t\"content\": \"ZBS, and u?\"\n" +
-                "\t\t\t\t},{\n" +
-                "\t\t\t\t\t\"author\": \"Name1\",\n" +
-                "\t\t\t\t\t\"content\": \"Shalom!!!!\"\n" +
-                "\t\t\t\t},\n" +
-                "\t\t\t\t{\n" +
-                "\t\t\t\t\t\"author\": \"Name2\",\n" +
-                "\t\t\t\t\t\"content\": \"Shalom too!!!\"\n" +
-                "\t\t\t\t},\n" +
-                "\t\t\t\t{\n" +
-                "\t\t\t\t\t\"author\": \"Name1\",\n" +
-                "\t\t\t\t\t\"content\": \"HAW?\"\n" +
-                "\t\t\t\t},\n" +
-                "\t\t\t\t{\n" +
-                "\t\t\t\t\t\"author\": \"Name2\",\n" +
-                "\t\t\t\t\t\"content\": \"ZBS, and u?\"\n" +
-                "\t\t\t\t},{\n" +
-                "\t\t\t\t\t\"author\": \"Name1\",\n" +
-                "\t\t\t\t\t\"content\": \"Shalom!!!!\"\n" +
-                "\t\t\t\t},\n" +
-                "\t\t\t\t{\n" +
-                "\t\t\t\t\t\"author\": \"Name2\",\n" +
-                "\t\t\t\t\t\"content\": \"Shalom too!!!\"\n" +
-                "\t\t\t\t},\n" +
-                "\t\t\t\t{\n" +
-                "\t\t\t\t\t\"author\": \"Name1\",\n" +
-                "\t\t\t\t\t\"content\": \"HAW?\"\n" +
-                "\t\t\t\t},\n" +
-                "\t\t\t\t{\n" +
-                "\t\t\t\t\t\"author\": \"Name2\",\n" +
-                "\t\t\t\t\t\"content\": \"ZBS, and u?\"\n" +
-                "\t\t\t\t},{\n" +
-                "\t\t\t\t\t\"author\": \"Name1\",\n" +
-                "\t\t\t\t\t\"content\": \"Shalom!!!!\"\n" +
-                "\t\t\t\t},\n" +
-                "\t\t\t\t{\n" +
-                "\t\t\t\t\t\"author\": \"Name2\",\n" +
-                "\t\t\t\t\t\"content\": \"Shalom too!!!\"\n" +
-                "\t\t\t\t},\n" +
-                "\t\t\t\t{\n" +
-                "\t\t\t\t\t\"author\": \"Name1\",\n" +
-                "\t\t\t\t\t\"content\": \"HAW?\"\n" +
-                "\t\t\t\t},\n" +
-                "\t\t\t\t{\n" +
-                "\t\t\t\t\t\"author\": \"Name2\",\n" +
-                "\t\t\t\t\t\"content\": \"ZBS, and u?\"\n" +
-                "\t\t\t\t},\n" +
+                "\t\t\t\t}" +
                 "\t\t\t]\n" +
                 "\t\t},\n" +
                 "\t\t{\n" +

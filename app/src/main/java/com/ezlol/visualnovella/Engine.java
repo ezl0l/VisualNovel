@@ -14,26 +14,45 @@ import java.util.Map;
 import java.util.Queue;
 
 public class Engine implements Dialog.OnDialogEndListener {
+    public interface OnChoiceChangeListener {
+        void onChoiceChange(Dialog.Choice choice);
+    }
+
     @Override
     public void onDialogEnd(Dialog dialog) {
         Log.d("My", "Dialog end " + dialogQueue.size());
+        if(dialog == null)
+            Log.w("My", "Dialog is null");
 
-        if(dialog != null) {
-            if (dialog.onDialogEndListenerNonStatic != null)
-                dialog.onDialogEndListenerNonStatic.onDialogEnd(dialog);
-        }
+//        if(dialog != null) {
+//            if (dialog.onDialogEndListenerNonStatic != null)
+//                dialog.onDialogEndListenerNonStatic.onDialogEnd(dialog);
+//        }
 
         if(onDialogEndListener != null)
             onDialogEndListener.onDialogEnd(dialog);
-
-        if(onPhraseChangeListener != null && currentDialog != null)
-            onPhraseChangeListener.onPhraseChange(currentDialog.getCurrentPhrase());
 
         currentDialog = dialogQueue.poll();
 
         if(currentDialog == null) return;
 
+        if(onPhraseChangeListener != null)
+            onPhraseChangeListener.onPhraseChange(currentDialog.getCurrentPhrase());
+
         Log.d("My", "CurrentDialog:" + currentDialog.phrases.length);
+    }
+
+    private static void kickDialogQueue() {
+        if(dialogQueue.size() == 0) return;
+
+        if(currentDialog != null && !currentDialog.isEnded) return;
+
+        currentDialog = dialogQueue.poll();
+
+        if(currentDialog == null) return;
+
+        if(onPhraseChangeListener != null)
+            onPhraseChangeListener.onPhraseChange(currentDialog.getCurrentPhrase());
     }
 
     static class Resource {
@@ -75,6 +94,9 @@ public class Engine implements Dialog.OnDialogEndListener {
     private static OnSceneChangeListener onSceneChangeListener = null;
     private static OnPhraseChangeListener onPhraseChangeListener = null;
     private static Dialog.OnDialogEndListener onDialogEndListener = null;
+    private static OnChoiceChangeListener onChoiceChangeListener = null;
+
+    public static Dialog.Choice currentChoice = null;
 
     {
         Dialog.onDialogEndListener = this;
@@ -130,7 +152,7 @@ public class Engine implements Dialog.OnDialogEndListener {
                 }
                 if(searchScene == null)
                     throw new SceneNotFoundException();
-                quest.setCurrentScene(searchScene);
+                Engine.setCurrentScene(searchScene);
                 break;
             }
 
@@ -140,15 +162,19 @@ public class Engine implements Dialog.OnDialogEndListener {
 
                 dialogQueue.add(dialog);
 
+                kickDialogQueue();
+
                 if(command.params.length > 1) {
                     SL.Action action = environment.scene.findAction(command.params[1]);
-                    dialog.onDialogEndListenerNonStatic = dialog1 -> {
-                        try {
-                            action.exec(environment);
-                        } catch (UnknownCommandException | IOException | SceneNotFoundException e) {
-                            e.printStackTrace();
-                        }
-                    };
+                    if(action != null) {
+                        dialog.onDialogEndListenerNonStatic = dialog1 -> {
+                            try {
+                                action.exec(environment);
+                            } catch (UnknownCommandException | IOException | SceneNotFoundException e) {
+                                e.printStackTrace();
+                            }
+                        };
+                    }
                 }
                 break;
             }
@@ -163,9 +189,21 @@ public class Engine implements Dialog.OnDialogEndListener {
                 break;
 
             case "check_flag":
-                if(flags.contains(command.params[0])) {
+                if(flags.contains(command.params[0]))
                     environment.scene.findAction(command.params[1]).exec(environment);
-                }
+                break;
+
+            case "choice":
+                if(command.params.length > 4)
+                    Log.w(Engine.class.getSimpleName(), "This 'choice' command syntax isn't supported yet ;/");
+
+                Dialog.Choice choice = new Dialog.Choice(environment, command.params[0], command.params[1],
+                        command.params[2], command.params[3]);
+
+                currentChoice = choice;
+
+                if(onChoiceChangeListener != null)
+                    onChoiceChangeListener.onChoiceChange(choice);
                 break;
 
             default:
@@ -178,10 +216,6 @@ public class Engine implements Dialog.OnDialogEndListener {
                 quest.scenes) {
             scene.init(new Environment("", scene));
         }
-        this.onDialogEnd(null);
-
-        if(onPhraseChangeListener != null)
-            onPhraseChangeListener.onPhraseChange(currentDialog.getCurrentPhrase());
     }
 
     public static void setOnDialogEndListener(Dialog.OnDialogEndListener onDialogEndListener) {
@@ -205,6 +239,27 @@ public class Engine implements Dialog.OnDialogEndListener {
         return true;
     }
 
+    public void declineClick() throws UnknownCommandException, IOException, SceneNotFoundException {
+        if(currentChoice == null) return;
+        SL.Action declineAction = currentChoice.environment.scene.findAction(currentChoice.declineAction);
+        if(declineAction != null)
+            declineAction.exec(currentChoice.environment);
+        currentChoice = null;
+    }
+
+    public void agreeClick() throws UnknownCommandException, IOException, SceneNotFoundException {
+        if(currentChoice == null) return;
+
+        Log.d("agreeClick", currentChoice.agreeAction);
+
+        SL.Action agreeAction = currentChoice.environment.scene.findAction(currentChoice.agreeAction);
+        if(agreeAction != null) {
+            Log.d("agreeClick", "exec");
+            agreeAction.exec(currentChoice.environment);
+        }
+        currentChoice = null;
+    }
+
     private static void setCurrentScene(SL.Scene scene) {
         if(onSceneChangeListener != null)
             onSceneChangeListener.onSceneChange(quest.currentScene, scene);
@@ -216,19 +271,15 @@ public class Engine implements Dialog.OnDialogEndListener {
         return this;
     }
 
-    public OnSceneChangeListener getOnSceneChangeListener() {
-        return onSceneChangeListener;
-    }
-
     public void setOnSceneChangeListener(OnSceneChangeListener onSceneChangeListener) {
         Engine.onSceneChangeListener = onSceneChangeListener;
     }
 
-    public OnPhraseChangeListener getOnPhraseChangeListener() {
-        return onPhraseChangeListener;
-    }
-
     public void setOnPhraseChangeListener(OnPhraseChangeListener onDialogChangeListener) {
         Engine.onPhraseChangeListener = onDialogChangeListener;
+    }
+
+    public static void setOnChoiceChangeListener(OnChoiceChangeListener onChoiceChangeListener) {
+        Engine.onChoiceChangeListener = onChoiceChangeListener;
     }
 }
